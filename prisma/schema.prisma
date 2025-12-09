@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Enum para tipar os tipos de atividade
+enum ActivityType {
+  RUN
+  WEIGHT_TRAINING
+  REST
+}
+
+// Enum para o status
+enum Status {
+  PENDING
+  COMPLETED
+}
+
+model Workout {
+  id          String       @id @default(cuid())
+  date        DateTime // A data do treino
+  type        ActivityType // O tipo de treino
+  status      Status       @default(PENDING)
+  description String? // Notas gerais ou observações do dia
+
+  // Campos específicos de Corrida (Opcionais, pois nem todo treino é corrida)
+  plannedDistanceKm Float?
+  actualDistanceKm  Float?
+
+  plannedTimeMin Int? // Tempo em minutos
+  actualTimeMin  Int?
+
+  plannedPace String? // Ex: "5:30"
+  actualPace  String?
+
+  // Relacionamento para Musculação
+  exercises Exercise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date]) // Índice para deixar as buscas por data rápidas no dashboard
+}
+
+model Exercise {
+  id   String @id @default(cuid())
+  name String // Ex: "Flexão" ou "Supino Reto"
+  sets String // Ex: "3 x 15"
+
+  workoutId String
+  workout   Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+}
