@@ -1,9 +1,8 @@
 // app/_actions/workout.ts
 'use server'
 import { db } from '@/lib/prisma';
+import { Workout } from '@prisma/client';
 import { revalidatePath } from 'next/cache'
-import { ActivityType, Status, Workout } from '@prisma/client';
-
 
 // --- TIPAGEM PRÓPRIA (String Literals) ---
 // Você está usando string literals, o que é ótimo para desacoplamento e validação.
@@ -27,18 +26,10 @@ interface CreateWorkoutData {
 export async function createWorkout(data: CreateWorkoutData) {
   try {
 
-    // O uso dos Enums AQUI força a necessidade da importação de VALOR (não type) acima.
-    const prismaStatus = Status[data.status as keyof typeof Status];
-    const prismaType = ActivityType[data.type as keyof typeof ActivityType];
-
-    if (!prismaStatus || !prismaType) {
-      return { success: false, error: "Tipo ou Status de Atividade inválido." };
-    }
-
     const workoutData = {
       date: data.date,
-      type: prismaType,
-      status: prismaStatus,
+      type: data.type,
+      status: data.status,
       description: data.description,
 
       plannedDistanceKm: data.plannedDistanceKm,
@@ -83,19 +74,10 @@ export async function updateWorkout(id: string, data: CreateWorkoutData) {
     if (!data.status || !data.type) {
       return { success: false, error: "O Tipo e o Status de Atividade devem ser selecionados." };
     }
-
-    // Mapeamento de String para Objeto Enum
-    const prismaStatus = Status[data.status as keyof typeof Status];
-    const prismaType = ActivityType[data.type as keyof typeof ActivityType];
-
-    if (!prismaStatus || !prismaType) {
-      return { success: false, error: "Falha interna no mapeamento dos tipos de atividade." };
-    }
-
     const workoutData = {
       date: data.date,
-      type: prismaType,
-      status: prismaStatus,
+      type: data.type,
+      status: data.status,
       description: data.description,
 
       plannedDistanceKm: data.plannedDistanceKm,
