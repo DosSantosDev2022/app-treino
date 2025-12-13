@@ -1,15 +1,13 @@
 // app/_actions/workout.ts
 'use server'
+import { ActivityType, Status } from '@/@types/workout';
 import { db } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache'
-import * as Prisma from '@prisma/client';
 
-// --- TIPAGEM PRÓPRIA (String Literals) ---
-// Você está usando string literals, o que é ótimo para desacoplamento e validação.
 interface CreateWorkoutData {
   date: Date;
-  type: Prisma.ActivityType
-  status: Prisma.Status
+  type: ActivityType
+  status: Status
   description?: string;
   plannedDistanceKm?: number;
   actualDistanceKm?: number;
