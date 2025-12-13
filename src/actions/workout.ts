@@ -2,13 +2,14 @@
 'use server'
 import { db } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache'
+import * as Prisma from '@prisma/client';
 
 // --- TIPAGEM PRÓPRIA (String Literals) ---
 // Você está usando string literals, o que é ótimo para desacoplamento e validação.
 interface CreateWorkoutData {
   date: Date;
-  type: "RUN" | "WEIGHT_TRAINING" | "REST"; // Própria tipagem
-  status: "PENDING" | "COMPLETED"; // Própria tipagem
+  type: Prisma.ActivityType
+  status: Prisma.Status
   description?: string;
   plannedDistanceKm?: number;
   actualDistanceKm?: number;

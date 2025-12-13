@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { db } from '@/lib/prisma';
-import { Status } from '@prisma/client';
+import * as Prisma from '@prisma/client';
 
 // --- TIPAGEM ---
 interface DashboardCardProps {
@@ -56,7 +56,7 @@ async function fetchMetricData(timeframe: DashboardCardProps['timeframe'], metri
 
   // O filtro de data e status
   const baseWhere = {
-    status: Status.COMPLETED, // Usando o Enum do Prisma para tipagem correta
+    status: Prisma.Status.COMPLETED, // Usando o Enum do Prisma para tipagem correta
     date: (startDate && endDate) ? {
       gte: startDate,
       lte: endDate,

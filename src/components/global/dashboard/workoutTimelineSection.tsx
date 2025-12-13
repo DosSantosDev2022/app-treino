@@ -1,6 +1,6 @@
 'use client'; // 💡 Torna este um Cliente Componente
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { WeeklyTimeline } from '@/components/global/workouts';
 import { Workout as WorkoutType, groupWorkoutsByMonthAndWeek } from '@/utils/workout-utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Assumindo que você usa um Select/Dropdown
