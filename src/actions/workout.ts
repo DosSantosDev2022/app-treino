@@ -1,7 +1,6 @@
 // app/_actions/workout.ts
 'use server'
 import { db } from '@/lib/prisma';
-import { Workout } from '@prisma/client';
 import { revalidatePath } from 'next/cache'
 
 // --- TIPAGEM PRÓPRIA (String Literals) ---
@@ -57,7 +56,7 @@ export async function createWorkout(data: CreateWorkoutData) {
     revalidatePath('/');
 
     // 💡 A tipagem de retorno agora é do Prisma, mas o TypeScript pode inferir
-    return { success: true, data: newWorkout as Workout }; // Usando o tipo Workout importado
+    return { success: true, data: newWorkout }; // Usando o tipo Workout importado
 
   } catch (error) {
     console.error("Erro ao criar treino:", error);
@@ -115,7 +114,7 @@ export async function updateWorkout(id: string, data: CreateWorkoutData) {
       ]);
 
       revalidatePath('/');
-      return { success: true, data: updatedWorkout as Workout };
+      return { success: true, data: updatedWorkout };
 
     } else {
       // 3. Se não for musculação, atualiza diretamente
@@ -131,7 +130,7 @@ export async function updateWorkout(id: string, data: CreateWorkoutData) {
       });
 
       revalidatePath('/');
-      return { success: true, data: updatedWorkout as Workout };
+      return { success: true, data: updatedWorkout };
     }
 
   } catch (error) {
@@ -151,7 +150,7 @@ export async function deleteWorkout(id: string) {
 
     revalidatePath('/');
 
-    return { success: true, data: deletedWorkout as Workout };
+    return { success: true, data: deletedWorkout };
 
   } catch (error) {
     console.error(`Erro ao excluir treino ${id}:`, error);
