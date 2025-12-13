@@ -1,11 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Activity,
+  Calendar,
+  Clock,
   Footprints,
+  TrendingUp,
 } from 'lucide-react'
 import { db } from '@/lib/prisma'
 import { groupWorkoutsByMonthAndWeek, Workout as WorkoutType } from '@/utils/workout-utils'
-import { WeeklyTimeline, RegisterWorkoutModal } from '@/components/global/workouts'
+import { RegisterWorkoutModal } from '@/components/global/workouts'
+import { ResumCards } from '@/components/global/dashboard/resumCards'
+import { ResumCardsGridSkeleton, WorkoutTimelineSection } from '@/components/global/dashboard'
+import { Suspense } from 'react'
 
 // Função para buscar dados (roda no servidor) - Mantida
 async function getWorkouts(): Promise<WorkoutType[]> {
@@ -21,16 +26,7 @@ async function getWorkouts(): Promise<WorkoutType[]> {
 export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
-  const workouts = await getWorkouts()
-
-  // 4. Aplica o agrupamento por semana
-  const groupedWorkouts = groupWorkoutsByMonthAndWeek(workouts);
-
-  // Cálculos Simples para o Resumo
-  // *MELHORIA: Use os treinos COM status COMPLETED para KPIs mais precisos*
-  const completedWorkouts = workouts.filter(w => w.status === 'COMPLETED')
-  const totalWorkoutsCount = completedWorkouts.length
-  const totalKmRun = completedWorkouts.reduce((acc, curr) => acc + (curr.actualDistanceKm || 0), 0)
+  const allWorkouts = await getWorkouts()
 
   return (
     <div className="container mx-auto p-4 space-y-8">
@@ -45,45 +41,116 @@ export default async function Dashboard() {
       </div>
 
       {/* --- CARDS DE RESUMO (KPIs) --- */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Treinos Feitos</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalWorkoutsCount}</div>
-            <p className="text-xs text-muted-foreground">Total concluído</p>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Km Percorridos</CardTitle>
-            <Footprints className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalKmRun.toFixed(1)} km</div>
-            <p className="text-xs text-muted-foreground">Total acumulado</p>
-          </CardContent>
-        </Card>
-        {/* Adicione mais cards de KPI (por exemplo, Média Semanal) aqui */}
-      </div>
+        <Suspense fallback={<ResumCardsGridSkeleton count={4} />}>
 
-      {/* --- LISTA DE TREINOS POR SEMANA --- */}
-      <div className="space-y-4 border p-2 rounded-2xl shadow">
-        <h2 className="text-xl font-semibold">Meus Treinos</h2>
+          <div className="flex flex-wrap gap-4">
+            {/* COLUNA 1: TOTAL */}
+            <div className='flex-1 min-w-[45%] md:min-w-0 md:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] space-y-1.5'>
+              <h2 className='font-semibold text-xl flex items-center gap-2 text-primary'>
+                <TrendingUp className='w-5 h-5' />
+                Total Geral
+              </h2>
+              {/* TOTAL - Treinos Concluídos */}
+              <ResumCards
+                title="Total de Treinos"
+                unit="treinos"
+                icon={Activity}
+                timeframe="total"
+                metric="workouts"
+              />
 
-        <div className="max-h-[600px] overflow-y-auto pr-2">
-          {workouts.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground border rounded-lg bg-secondary">
-              Nenhum treino registrado ainda. Comece agora!
+              {/* TOTAL - Km Percorridos */}
+              <ResumCards
+                title="Total de Km"
+                unit="km"
+                icon={Footprints}
+                timeframe="total"
+                metric="distance"
+              />
             </div>
-          ) : (
-            // 5. Utiliza o novo componente para a timeline
-            <WeeklyTimeline groupedWorkouts={groupedWorkouts} />
-          )}
-        </div>
+
+            {/* COLUNA 2: ANUAL */}
+            <div className='flex-1 min-w-[45%] md:min-w-0 md:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] space-y-1.5'>
+              <h2 className='font-semibold text-xl flex items-center gap-2 text-primary'>
+                <Calendar className='w-5 h-5' />
+                Resumo Anual
+              </h2>
+              {/* ANUAL - Treinos Concluídos (Ano Atual) */}
+              <ResumCards
+                title="Treinos do Ano"
+                unit="treinos"
+                icon={Activity}
+                timeframe="year"
+                metric="workouts"
+              />
+
+              {/* ANUAL - Km Percorridos (Ano Atual) */}
+              <ResumCards
+                title="Km do Ano"
+                unit="km"
+                icon={Footprints}
+                timeframe="year"
+                metric="distance"
+              />
+            </div>
+
+            {/* COLUNA 3: MENSAL */}
+            <div className='flex-1 min-w-[45%] md:min-w-0 md:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] space-y-1.5'>
+              <h2 className='font-semibold text-xl flex items-center gap-2 text-primary'>
+                <Calendar className='w-5 h-5' />
+                Resumo Mensal
+              </h2>
+              {/* MENSAL - Treinos Concluídos (Mês Atual) */}
+              <ResumCards
+                title="Treinos do Mês"
+                unit="treinos"
+                icon={Activity}
+                timeframe="month"
+                metric="workouts"
+              />
+
+              {/* MENSAL - Km Percorridos (Mês Atual) */}
+              <ResumCards
+                title="Km do Mês"
+                unit="km"
+                icon={Footprints}
+                timeframe="month"
+                metric="distance"
+              />
+            </div>
+
+            {/* COLUNA 4: SEMANAL */}
+            <div className='flex-1 min-w-[45%] md:min-w-0 md:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] space-y-1.5'>
+              <h2 className='font-semibold text-xl flex items-center gap-2 text-primary'>
+                <Clock className='w-5 h-5' />
+                Resumo Semanal
+              </h2>
+              {/* SEMANAL - Treinos Concluídos (Semana Atual) */}
+              <ResumCards
+                title="Treinos da Semana"
+                unit="treinos"
+                icon={Activity}
+                timeframe="week"
+                metric="workouts"
+              />
+
+              {/* SEMANAL - Km Percorridos (Semana Atual) */}
+              <ResumCards
+                title="Km da Semana"
+                unit="km"
+                icon={Footprints}
+                timeframe="week"
+                metric="distance"
+              />
+            </div>
+          </div>
+
+        </Suspense>
+
+        {/* --- LISTA DE TREINOS POR SEMANA --- */}
+        <WorkoutTimelineSection allWorkouts={allWorkouts} />
       </div>
     </div>
   )

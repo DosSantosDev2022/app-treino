@@ -21,7 +21,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {/* Envolvemos tudo no Providers */}
         <Providers>
-          <main className="min-h-screen  bg-background text-foreground pb-10">
+          <main className="min-h-screen  bg-background text-foreground pb-10 scrollbar-custom">
             {children}
           </main>
         </Providers>

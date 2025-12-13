@@ -43,9 +43,11 @@ const WeeklyTimeline = ({ groupedWorkouts }: WeeklyTimelineProps) => {
         <div key={monthGroup.monthKey} className="space-y-6">
 
           {/* 🛑 TÍTULO DO MÊS */}
-          <h2 className="text-2xl font-extrabold text-primary border-b-4 border-border pb-2 mb-6 sticky top-0  z-10">
-            {monthGroup.monthName}
-          </h2>
+          <div className='bg-primary-foreground  p-2 rounded'>
+            <h2 className="text-2xl font-extrabold text-primary border-b-4 border-border pb-2 mb-6 sticky top-0  z-10">
+              {monthGroup.monthName}
+            </h2>
+          </div>
 
           {/* 🛑 ACCORDION PARA AGRUPAR AS SEMANAS */}
           <Accordion type="single" collapsible className="w-full space-y-4">
@@ -54,7 +56,7 @@ const WeeklyTimeline = ({ groupedWorkouts }: WeeklyTimelineProps) => {
               <AccordionItem
                 key={`${monthGroup.monthKey}-${weekGroup.weekNumber}`}
                 value={`${monthGroup.monthKey}-${weekGroup.weekNumber}`}
-                className="border rounded-lg shadow-sm px-4 data-[state=open]:bg-blue-50/50 transition-colors"
+                className="border rounded-lg shadow-sm px-4 data-[state=open]:bg-primary-foreground transition-colors"
               >
 
                 {/* CABEÇALHO DA SEMANA (CLICKABLE) */}
