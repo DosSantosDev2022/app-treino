@@ -1,27 +1,22 @@
 // app/_actions/workout.ts
 'use server'
 import { db } from '@/lib/prisma';
-import { ActivityType, Status } from '@prisma/client';
+// 💡 CORREÇÃO APLICADA AQUI: Removemos os Enums da importação 'type'
+// Eles devem ser importados como valores abaixo para serem usados no runtime.
+// import type { ActivityType, Status } from '@prisma/client'; // LINHA REMOVIDA/MODIFICADA
 import { revalidatePath } from 'next/cache'
 
-/**
- * @typedef {Object} CreateWorkoutData - Estrutura de dados para criar ou atualizar um treino.
- * @property {Date} date - A data do treino.
- * @property {'RUN' | 'WEIGHT_TRAINING' | 'REST'} type - O tipo de atividade (Corrida, Musculação, ou Descanso).
- * @property {'PENDING' | 'COMPLETED'} status - O status do treino (Pendente ou Concluído).
- * @property {string} [description] - Uma descrição opcional para o treino.
- * @property {number} [plannedDistanceKm] - Distância planejada em quilômetros (relevante para 'RUN').
- * @property {number} [actualDistanceKm] - Distância real percorrida em quilômetros (relevante para 'RUN').
- * @property {number} [plannedTimeMin] - Tempo planejado em minutos (relevante para 'RUN').
- * @property {number} [actualTimeMin] - Tempo real em minutos (relevante para 'RUN').
- * @property {string} [plannedPace] - Ritmo planejado (ex: '5:00/km') (relevante para 'RUN').
- * @property {string} [actualPace] - Ritmo real (ex: '4:50/km') (relevante para 'RUN').
- * @property {Array<{name: string, sets: string}>} [exercises] - Lista de exercícios com nome e séries (relevante para 'WEIGHT_TRAINING').
- */
+// 💡 NOVA IMPORTAÇÃO DOS ENUMS COMO VALORES PARA USO NO RUNTIME
+import { ActivityType, Status, Workout } from '@prisma/client';
+
+
+// --- TIPAGEM ---
+// Note que você pode simplificar a tipagem da interface usando os Enums importados.
 interface CreateWorkoutData {
   date: Date;
-  type: 'RUN' | 'WEIGHT_TRAINING' | 'REST';
-  status: 'PENDING' | 'COMPLETED';
+  // Usando os Enums importados (que são exportados como strings) para tipagem
+  type: ActivityType;
+  status: Status;
   description?: string;
   plannedDistanceKm?: number;
   actualDistanceKm?: number;
@@ -34,15 +29,14 @@ interface CreateWorkoutData {
 
 /**
  * Cria um novo registro de treino no banco de dados.
- * Mapeia os valores de string de 'type' e 'status' para os Enums do Prisma.
- * Associa exercícios se o tipo for 'WEIGHT_TRAINING'.
- * * @param {CreateWorkoutData} data - Os dados do novo treino.
- * @returns {Promise<{success: true, data: import('@prisma/client').Workout} | {success: false, error: string}>} Um objeto com o status da operação e os dados do treino criado ou uma mensagem de erro.
+ * @param {CreateWorkoutData} data - Os dados do novo treino.
+ * @returns {Promise<{success: true, data: Workout} | {success: false, error: string}>}
  */
 export async function createWorkout(data: CreateWorkoutData) {
   try {
 
-    // Mapeamento de String para Objeto Enum do Prisma
+    // 💡 Mapeamento de String para Objeto Enum do Prisma (mantido)
+    // O TypeScript já garante que data.status e data.type são strings válidas dos Enums.
     const prismaStatus = Status[data.status as keyof typeof Status];
     const prismaType = ActivityType[data.type as keyof typeof ActivityType];
 
@@ -58,7 +52,7 @@ export async function createWorkout(data: CreateWorkoutData) {
       status: prismaStatus,
       description: data.description,
 
-      // Inicialização para evitar o erro de tipagem anterior
+      // Campos de corrida
       plannedDistanceKm: data.plannedDistanceKm,
       actualDistanceKm: data.actualDistanceKm,
       plannedTimeMin: data.plannedTimeMin,
@@ -67,15 +61,12 @@ export async function createWorkout(data: CreateWorkoutData) {
       actualPace: data.actualPace,
     };
 
-    // 2. NENHUMA LÓGICA DE 'if (data.type === 'RUN')' É NECESSÁRIA AQUI, 
-    // POIS OS CAMPOS JÁ ESTÃO TODOS NO OBJETO COM VALORES DE ENTRADA.
-
-    // 3. Cria o registro no banco
+    // 2. Cria o registro no banco
     const newWorkout = await db.workout.create({
       data: {
         ...workoutData,
         // Se for musculação e tiver exercícios, cria eles na mesma transação
-        exercises: data.type === 'WEIGHT_TRAINING' && data.exercises
+        exercises: data.type === ActivityType.WEIGHT_TRAINING && data.exercises
           ? {
             create: data.exercises.map(ex => ({
               name: ex.name,
@@ -86,7 +77,7 @@ export async function createWorkout(data: CreateWorkoutData) {
       },
     });
 
-    // 4. Revalida o cache
+    // 3. Revalida o cache
     revalidatePath('/');
 
     return { success: true, data: newWorkout };
@@ -100,12 +91,9 @@ export async function createWorkout(data: CreateWorkoutData) {
 
 /**
  * Atualiza um registro de treino existente no banco de dados.
- * Utiliza uma transação do Prisma (db.$transaction) para garantir que
- * os exercícios antigos sejam excluídos e os novos criados atomicamente, 
- * caso o tipo de treino seja 'WEIGHT_TRAINING'.
- * * @param {string} id - O ID do treino a ser atualizado.
+ * @param {string} id - O ID do treino a ser atualizado.
  * @param {CreateWorkoutData} data - Os novos dados do treino.
- * @returns {Promise<{success: true, data: import('@prisma/client').Workout} | {success: false, error: string}>} Um objeto com o status da operação e os dados do treino atualizado ou uma mensagem de erro.
+ * @returns {Promise<{success: true, data: Workout} | {success: false, error: string}>}
  */
 export async function updateWorkout(id: string, data: CreateWorkoutData) {
   try {
@@ -141,7 +129,7 @@ export async function updateWorkout(id: string, data: CreateWorkoutData) {
     // --- 2. GESTÃO DE TRANSAÇÃO (OPCIONAL, MAS RECOMENDADO PARA EXERCÍCIOS) ---
 
     // Se for musculação e tiver exercícios, precisamos de uma transação
-    if (data.type === 'WEIGHT_TRAINING' && data.exercises) {
+    if (data.type === ActivityType.WEIGHT_TRAINING && data.exercises) { // 💡 Uso do Enum como Valor
 
       // a) Deleta todos os exercícios antigos associados a este treino
       const deleteOldExercises = db.exercise.deleteMany({
@@ -195,31 +183,23 @@ export async function updateWorkout(id: string, data: CreateWorkoutData) {
 }
 
 /**
- * Exclui um registro de treino existente do banco de dados, junto com seus exercícios associados (se houver).
+ * Exclui um registro de treino existente do banco de dados.
  * @param {string} id - O ID do treino a ser excluído.
- * @returns {Promise<{success: true, data: import('@prisma/client').Workout} | {success: false, error: string}>} Um objeto com o status da operação e os dados do treino excluído ou uma mensagem de erro.
+ * @returns {Promise<{success: true, data: Workout} | {success: false, error: string}>}
  */
 export async function deleteWorkout(id: string) {
-    try {
-        // A exclusão é geralmente simples. Se a relação no seu schema for
-        // configurada com `onDelete: Cascade` para os exercícios,
-        // o Prisma cuidará da exclusão dos exercícios automaticamente.
-        // Se não for, você precisará de uma transação para excluir
-        // os exercícios primeiro. Assumiremos `onDelete: Cascade` aqui
-        // por ser uma boa prática para relacionamentos "um para muitos".
+  try {
+    const deletedWorkout = await db.workout.delete({
+      where: { id },
+    });
 
-        const deletedWorkout = await db.workout.delete({
-            where: { id },
-        });
+    // Revalida o cache para atualizar a UI
+    revalidatePath('/');
 
-        // Revalida o cache para atualizar a UI
-        revalidatePath('/');
+    return { success: true, data: deletedWorkout };
 
-        return { success: true, data: deletedWorkout };
-
-    } catch (error) {
-        // O erro mais comum aqui é se o ID não for encontrado (P2025)
-        console.error(`Erro ao excluir treino ${id}:`, error);
-        return { success: false, error: "Não foi possível excluir o treino. Ele pode não existir mais." };
-    }
+  } catch (error) {
+    console.error(`Erro ao excluir treino ${id}:`, error);
+    return { success: false, error: "Não foi possível excluir o treino. Ele pode não existir mais." };
+  }
 }
