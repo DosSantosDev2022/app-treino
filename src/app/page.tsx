@@ -6,7 +6,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { db } from '@/lib/prisma'
-import { groupWorkoutsByMonthAndWeek, Workout as WorkoutType } from '@/utils/workout-utils'
+import { Workout as WorkoutType } from '@/utils/workout-utils'
 import { RegisterWorkoutModal } from '@/components/global/workouts'
 import { ResumCards } from '@/components/global/dashboard/resumCards'
 import { ResumCardsGridSkeleton, WorkoutTimelineSection } from '@/components/global/dashboard'
@@ -27,6 +27,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
   const allWorkouts = await getWorkouts()
+
+  /* console.log('Workouts buscados para o Dashboard:', allWorkouts) */
 
   return (
     <div className="container mx-auto p-4 space-y-8">

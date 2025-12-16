@@ -13,7 +13,7 @@ export interface Workout {
     // Campos opcionais/nullable do Prisma devem ser number | null
     plannedDistanceKm: number | null;
     actualDistanceKm: number | null;
-    plannedTimeMin: number | null; // <<< ESTE CAMPO É O PONTO DE FALHA.
+    plannedTimeMin: number | null;
     actualTimeMin: number | null;
     plannedPace: string | null;
     actualPace: string | null;
@@ -56,13 +56,21 @@ function getWeekNumber(d: Date): number {
 
 /**
  * Helper para calcular a data de início da semana (Segunda-feira)
+ * CORRIGIDO: Usando métodos UTC
  */
 function getStartOfWeek(date: Date): Date {
-    const dayOfWeek = (date.getDay() + 6) % 7; // Ajusta para 0=Segunda, 6=Domingo
+    // 🛑 CORREÇÃO: Usar getUTCDay() para encontrar o dia da semana no fuso UTC.
+    // getUTCDay: 0=Domingo, 1=Segunda... Ajusta para 0=Segunda, 6=Domingo.
+    const dayOfWeek = (date.getUTCDay() + 6) % 7; 
+    
     const weekStartDate = new Date(date);
-    weekStartDate.setDate(date.getDate() - dayOfWeek);
-    // Zera o tempo para garantir que a chave da semana seja consistente
-    weekStartDate.setHours(0, 0, 0, 0);
+    
+    // 🛑 CORREÇÃO: Usar setUTCDate() para subtrair os dias
+    weekStartDate.setUTCDate(date.getUTCDate() - dayOfWeek);
+
+    // 🛑 CORREÇÃO: Zera o tempo para 00:00:00:000 UTC
+    weekStartDate.setUTCHours(0, 0, 0, 0); 
+    
     return weekStartDate;
 }
 
@@ -90,11 +98,13 @@ export function groupWorkoutsByMonthAndWeek(workouts: Workout[]): WorkoutsByMont
     parsedWorkouts.forEach(workout => {
         const date = workout.date;
 
-        // Chave do Mês (Ex: "2025-12")
-        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        // 🛑 CORREÇÃO: Chave do Mês (Ex: "2025-12") usando métodos UTC
+        const monthKey = `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}`;
+        
+        // monthName usa toLocaleDateString, o que é aceitável, pois a data deve ser 00:00:00Z
         const monthName = date.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long' });
 
-        // Chave da Semana (utiliza a lógica existente)
+        // Chave da Semana (utiliza a lógica AGORA CORRIGIDA de getStartOfWeek)
         const weekStartDate = getStartOfWeek(date);
         const weekKey = weekStartDate.toISOString().split('T')[0];
 

@@ -5,11 +5,11 @@ import React from 'react';
 // O componente de um único card placeholder
 export function ResumCardSkeleton() {
   return (
-    <Card className="min-h-[140px]"> {/* Altura mínima para evitar layout shift */}
+    <Card className="min-h-35"> {/* Altura mínima para evitar layout shift */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         {/* Título do Card */}
         <CardTitle className="text-sm font-medium">
-          <Skeleton className="h-4 w-[120px]" />
+          <Skeleton className="h-4 w-30" />
         </CardTitle>
         {/* Ícone */}
         <Skeleton className="h-4 w-4" />
@@ -17,11 +17,11 @@ export function ResumCardSkeleton() {
       <CardContent>
         {/* Valor Principal */}
         <div className="text-2xl font-bold">
-          <Skeleton className="h-8 w-[90px]" />
+          <Skeleton className="h-8 w-22.5" />
         </div>
         {/* Subtítulo */}
         <p className="text-xs text-muted-foreground mt-1">
-          <Skeleton className="h-3 w-[150px]" />
+          <Skeleton className="h-3 w-37.5" />
         </p>
       </CardContent>
     </Card>

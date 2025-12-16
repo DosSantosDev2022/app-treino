@@ -17,14 +17,12 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
   // 1. Cria um novo objeto Date a partir da string/data do treino.
   const dateObject = new Date(workout.date);
 
-  // 2. Cria uma nova data corrigida para o fuso horário local.
-  //    Isso garante que o dia exibido corresponda ao dia armazenado no banco (ex: 11/12/2025).
-  const offset = dateObject.getTimezoneOffset() * 60000;
-  const localDate = new Date(dateObject.getTime() + offset);
-
-  // 3. Formatação da data corrigida.
-  const dateFormatted = localDate.toLocaleDateString('pt-BR', {
-    weekday: 'short', day: 'numeric', month: 'long'
+  // 2. Formatação da data corrigida.
+  const dateFormatted = dateObject.toLocaleDateString('pt-BR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC'
   })
 
 
@@ -39,14 +37,10 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
   return (
     <WorkoutEditModal workout={workout}>
       <Card className={`border-l-4 shadow-sm ${borderLColor}`}
-        // Adiciona um hover/cursor para indicar que é clicável (edição futura)
-        onClick={() => console.log('Abrir detalhes/edição do treino ' + workout.id)}
       >
         <CardHeader className="pb-2">
-          {/* ... restante do código do CardHeader ... */}
           <div className="flex justify-between items-start">
             <div>
-              {/* TEXTO DA DATA (Antigo: text-slate-500) */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <CalendarDays className="w-4 h-4" />
                 <span className="capitalize">{dateFormatted}</span>
@@ -57,7 +51,6 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
                 {isRest && <span>😴 Descanso</span>}
               </CardTitle>
             </div>
-            {/* BADGE DE STATUS (Antigo: bg-green-600) */}
             <Badge variant={isCompleted ? "default" : "destructive"}>
               {isCompleted ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <Circle className="w-3 h-3 mr-1" />}
               {isCompleted ? "Feito" : "Pendente"}
@@ -66,10 +59,8 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* CONTEÚDO DE CORRIDA */}
           {isRun && (
             <div className="grid grid-cols-2 gap-2 text-sm">
-              {/* DISTÂNCIA (Antigo: bg-slate-50, text-slate-500, text-slate-400) */}
               <div className="bg-muted p-2 rounded">
                 <p className="text-muted-foreground text-xs">Distância</p>
                 <p className="font-semibold">
@@ -77,10 +68,8 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
                   {workout.plannedDistanceKm && <span className="text-muted-foreground/70 text-xs ml-1">/ {workout.plannedDistanceKm} km</span>}
                 </p>
               </div>
-              {/* TEMPO (Antigo: bg-slate-50, text-slate-500, text-slate-400) */}
               <div className="bg-muted p-2 rounded">
                 <p className="text-muted-foreground text-xs">Tempo (min)</p>
-                {/* Removemos o div flex para a exibição ficar parecida com a de Distância */}
                 <p className="font-semibold">
                   {/* Exibe o tempo real ou o traço, se não houver tempo real */}
                   {workout.actualTimeMin ? `${workout.actualTimeMin}` : '-'}
@@ -92,7 +81,6 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
                   )}
                 </p>
               </div>
-              {/* PACE (Antigo: bg-slate-50, text-slate-500, text-slate-400) */}
               <div className="bg-muted p-2 rounded col-span-2">
                 <p className="text-muted-foreground text-xs">Pace (Min/Km)</p>
                 <p className="font-semibold">
@@ -119,9 +107,7 @@ const WorkoutCard = ({ workout }: { workout: WorkoutType }) => {
             </div>
           )}
 
-          {/* DESCRIÇÃO / OBSERVAÇÕES (Antigo: text-slate-600, bg-yellow-50/50, border-yellow-100) */}
           {workout.description && (
-            // ... descrição original ...
             <div className="text-muted-foreground italic bg-accent/50 p-2 rounded border border-border">
               "{workout.description}"
             </div>

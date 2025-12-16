@@ -51,7 +51,7 @@ const WorkoutForm = ({ initialData, onSuccessfulSubmit, onDelete, onSuccessfulDe
   // Helper para converter o formulário (strings) para o tipo da Server Action (números/objetos)
   const mapFormDataToSend = (data: WorkoutFormData) => {
     return {
-      date: new Date(data.date),
+      date: new Date(`${data.date}T00:00:00.000Z`),
       type: data.type,
       status: data.status,
       description: data.description || undefined,

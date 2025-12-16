@@ -23,25 +23,30 @@ interface WorkoutEditModalProps {
 
 const WorkoutEditModal = ({ workout, children }: WorkoutEditModalProps) => {
   const router = useRouter();
-  // 🛑 Inicializa o hook aqui, passando o treino para edição
   const { handleDelete } = useWorkoutForm(workout);
 
-  // Estado para controlar se o modal está aberto, útil para fechar após o sucesso
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Função a ser chamada após a submissão bem-sucedida do formulário de EDIÇÃO
   const handleSuccessfulSubmit = () => {
     setIsOpen(false);
     toast.success("Treino atualizado com sucesso!");
+    router.refresh(); // Atualiza a lista após submissão bem-sucedida
   };
 
-  // Função a ser chamada após a exclusão bem-sucedida
   const handleSuccessfulDelete = () => {
-    setIsOpen(false); // Fecha o modal
-    // Recarrega o cache do Next.js. O revalidatePath nas actions garante o refresh.
-    // O `router.refresh()` é o método ideal para forçar um refresh sem full page reload.
+    setIsOpen(false);
     router.refresh();
   };
+
+  const formatModalDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('pt-BR', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    });
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -49,19 +54,18 @@ const WorkoutEditModal = ({ workout, children }: WorkoutEditModalProps) => {
         {children}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[425px] md:max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-106.25 md:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>✏️ Editar Treino</DialogTitle>
           <DialogDescription>
-            Ajuste os detalhes do seu treino de {workout.type} na data {new Date(workout.date).toLocaleDateString('pt-BR')}.
+            Ajuste os detalhes do seu treino de {workout.type} na data {formatModalDate(workout.date)}.
           </DialogDescription>
         </DialogHeader>
 
-        {/* 🛑 Passamos os handlers de exclusão e o initialData */}
+        {/* Passamos os handlers de exclusão e o initialData */}
         <WorkoutForm
           initialData={workout}
           onSuccessfulSubmit={handleSuccessfulSubmit}
-          // 🛑 Injetando o handler de exclusão do hook
           onDelete={handleDelete}
           onSuccessfulDelete={handleSuccessfulDelete}
         />
