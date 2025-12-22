@@ -14,10 +14,16 @@ interface DashboardCardProps {
 // --- FUNÇÕES AUXILIARES DE DATA ---
 function getCurrentWeekDateRange() {
   const now = new Date();
-  const dayOfWeek = now.getDay();
+
+  // getDay() retorna: 0 (Dom), 1 (Seg), 2 (Ter), ..., 6 (Sáb)
+  const day = now.getDay();
+
+  // Se for Domingo (0), queremos voltar 6 dias para chegar na Segunda anterior.
+  // Se não for Domingo, subtraímos (dia - 1) para chegar na Segunda da mesma semana.
+  const diff = now.getDate() - (day === 0 ? 6 : day - 1);
 
   const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - dayOfWeek);
+  startOfWeek.setDate(diff);
   startOfWeek.setHours(0, 0, 0, 0);
 
   const endOfWeek = new Date(startOfWeek);
