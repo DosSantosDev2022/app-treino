@@ -43,14 +43,17 @@ export interface WorkoutsByMonth {
  * Helper para calcular o número da semana no ano (ISO standard)
  */
 function getWeekNumber(d: Date): number {
-    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    // Define o dia como quinta-feira desta semana (Thursday)
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    // Obtém o início do ano
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    // Calcula o número da semana
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return weekNo;
+    const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    
+    // Início do ano da data atual
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    
+    // Calcula quantos dias se passaram desde o 1º dia do ano
+    const daysPast = Math.floor((date.getTime() - yearStart.getTime()) / 86400000);
+    
+    // Calcula a semana considerando o dia da semana em que o ano começou
+    // Isso garante que a contagem seja contínua até 31 de dezembro
+    return Math.ceil((daysPast + yearStart.getUTCDay() + 1) / 7);
 }
 
 
@@ -59,16 +62,13 @@ function getWeekNumber(d: Date): number {
  * CORRIGIDO: Usando métodos UTC
  */
 function getStartOfWeek(date: Date): Date {
-    // 🛑 CORREÇÃO: Usar getUTCDay() para encontrar o dia da semana no fuso UTC.
-    // getUTCDay: 0=Domingo, 1=Segunda... Ajusta para 0=Segunda, 6=Domingo.
-    const dayOfWeek = (date.getUTCDay() + 6) % 7; 
+    // 0 = Domingo, 1 = Segunda...
+    const dayOfWeek = date.getUTCDay(); 
     
     const weekStartDate = new Date(date);
     
-    // 🛑 CORREÇÃO: Usar setUTCDate() para subtrair os dias
+    // Subtrai os dias para voltar até o domingo mais próximo
     weekStartDate.setUTCDate(date.getUTCDate() - dayOfWeek);
-
-    // 🛑 CORREÇÃO: Zera o tempo para 00:00:00:000 UTC
     weekStartDate.setUTCHours(0, 0, 0, 0); 
     
     return weekStartDate;
